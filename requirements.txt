@@ -1,0 +1,6 @@
+setuptools<82
+pyramid_chameleon
+pyramid_tm
+zope.sqlalchemy
+geoalchemy2
+psycopg2-binary
