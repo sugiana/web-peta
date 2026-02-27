@@ -1,5 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    )
+from sqlalchemy.orm import (
+    relationship,
+    declarative_base,
+    )
+from sqlalchemy.dialects.postgresql import JSONB
 from geoalchemy2 import Geometry
 
 
@@ -14,4 +23,5 @@ class Wilayah(Base):
     tingkat_id = Column(Integer, nullable=False)
     nama_lengkap = Column(String(256), nullable=False)
     batas = Column(Geometry(geometry_type='MULTIPOLYGON', srid=4326))
+    data = Column(JSONB)
     parent = relationship('Wilayah', remote_side=[id])

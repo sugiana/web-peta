@@ -5,6 +5,25 @@ from sqlalchemy import func
 import json
 
 
+FIELDS = [
+    'jumlah_penduduk', 'pria', 'wanita', 'islam', 'kristen', 'katholik',
+    'hindu', 'budha', 'konghucu']
+
+
+def thousand(n):
+    s = '{0:,}'.format(n)
+    return s.replace(',', '.')
+
+
+def get_field(row, field):
+    if field not in row.data:
+        return
+    label = ' '.join(field.split('_'))
+    label = label.title()
+    s = thousand(row.data[field])
+    return f'{label} {s}'
+
+
 @view_config(route_name='home', renderer='templates/index.pt')
 def home_view(request):
     return {'project': 'Indonesian Map'}
@@ -12,12 +31,18 @@ def home_view(request):
 
 @view_config(route_name='geojson', renderer='json')
 def geojson_view(request):
+    def add_description():
+        value = get_field(row, field)
+        if value is not None:
+            ket.append(value)
+
     tingkat_id = request.params.get('tingkat', 1)  # Default: Provinsi
     bbox = request.params.get('bbox')
 
     query = request.dbsession.query(
         Wilayah.id,
         Wilayah.nama_lengkap,
+        Wilayah.data,
         func.ST_AsGeoJSON(Wilayah.batas).label('geometry')
     ).filter(
         Wilayah.tingkat_id == tingkat_id,
@@ -42,11 +67,16 @@ def geojson_view(request):
 
     features = []
     for row in results:
+        ket = [row.nama_lengkap]
+        if row.data:
+            for field in FIELDS:
+                add_description()
+        ket = '<br>'.join(ket)
         feature = {
             "type": "Feature",
             "id": row.id,
             "properties": {
-                "name": row.nama_lengkap
+                "name": ket
             },
             "geometry": json.loads(row.geometry)
         }
